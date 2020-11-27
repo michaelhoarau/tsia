@@ -1,9 +1,12 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from numba import njit, prange
 from pyts.preprocessing.discretizer import KBinsDiscretizer
 
+# Useful constants definition
 MTF_N_BINS = 8
 MTF_STRATEGY = 'quantile'
+COLORMAP = 'jet'
 
 def compute_mtf_statistics(mtf):
     """
@@ -13,7 +16,7 @@ def compute_mtf_statistics(mtf):
     
     PARAMS
     ======
-        mtf (numpy.ndarray)
+        mtf: numpy.ndarray
             Numpy array containing a Markov transition field.
             
     RETURNS
@@ -48,7 +51,8 @@ def discretize(timeseries, n_bins=MTF_N_BINS, strategy=MTF_STRATEGY):
             Strategy used to define the widths of the bins:
             - 'uniform': All bins in each sample have identical widths
             - 'quantile': All bins in each sample have the same number of points
-            - 'normal': Bin edges are quantiles from a standard normal distribution
+            - 'normal': Bin edges are quantiles from a standard normal 
+                        distribution
             
     RETURNS
     =======
@@ -80,6 +84,11 @@ def markov_transition_matrix(X_binned):
         X_binned: numpy.ndarray
             An array with the bin number associated to each value of an 
             original time series.
+        mtf_type: 'frequency' or 'probabilities'. Default = 'frequency'
+            If the desired type is probabilities, the function will return the
+            transition probabilities from a time step to the next. Otherwise,
+            the methods will return the frequencies (transition counts from
+            one column to the next).
     
     RETURNS
     =======
@@ -97,5 +106,86 @@ def markov_transition_matrix(X_binned):
         # associated to the current timestamp to the bin associated to 
         # the next timestamp 'j+1':
         X_mtm[X_binned[j], X_binned[j + 1]] += 1
-        
+
     return X_mtm
+    
+def markov_transition_probabilities(X_mtm):
+    """
+    Compute transition probabilities from a Markov transition field.
+    
+    PARAMS
+    ======
+        X_mtm: numpy.ndarray
+            A Markov transition matrix
+            
+    RETURNS
+    =======
+        X_mtm: numpy.ndarray
+            An updated Markov transition matrix where each value has been
+            replaced by the transition probability of the current timestep
+            to the next one.
+    """
+    sum_mtm = X_mtm.sum(axis=1)
+    np.place(sum_mtm, sum_mtm == 0, 1)
+    X_mtm /= sum_mtm[:, None]
+    
+    return X_mtm
+    
+def get_mtf_map(timeseries, 
+                mtf, 
+                step_size=0, 
+                colormap=COLORMAP, 
+                reversed_cmap=False):
+    """
+    This function extracts the color of one of the MTF diagonals and map them
+    back to the original time series. The colors are associated to probability
+    intensity for the Markov transitions.
+    
+    PARAMS
+    ======
+        timeseries: numpy.ndarray
+            The time series data to map the MTF data to
+        mtf: numpy.ndarray
+            The MTF associated to this timeseries
+        step_size: integer. Default = 0
+            The n-th diagonal to consider when extracting the probability
+            intensities from the MTF.
+        colormap: string. Default = 'jet'
+            Name of the matplotlib colormap to use
+        reversed_cmap: boolean. Default = False
+            Indicate if the colormap must be reversed
+            
+    RETURNS
+    =======
+        mtf_map: list of dict
+            A list of dictionaries for each slice of data with a color and the 
+            associated time series subset.
+    """
+    image_size = mtf.shape[0]
+    mtf_min = np.min(mtf)
+    mtf_max = np.max(mtf)
+    mtf_range = mtf_max - mtf_min
+    mtf_colors = (np.diag(mtf, k=step_size) - mtf_min) / mtf_range
+    
+    # Define the color map:
+    if reversed_cmap == True:
+        colormap = plt.cm.get_cmap(colormap).reversed()
+    else:
+        colormap = plt.cm.get_cmap(colormap)
+    
+    mtf_map = []
+    sequences_width = timeseries.shape[0] / image_size
+    for i in range(image_size):
+        c = colormap(mtf_colors[i])
+        start = int(i * sequences_width)
+        end = int((i+1) * sequences_width - 1)
+        data = timeseries.iloc[start:end, :]
+        
+        current_map = dict()
+        current_map.update({
+            'color': c,
+            'slice': data
+        })
+        mtf_map.append(current_map)
+        
+    return mtf_map

@@ -4,6 +4,7 @@ aims to enable advanced diagnostic tools for time series through imaging
 and visualization capabilities.
 """
 
-__version__ = '0.1'
+import plot, markov, network_graph
 
-__all__ = ['markov', 'network_graph', 'plot', 'diagnostics' 'utils']
+__version__ = '0.1'
+__all__ = ['markov', 'network_graph', 'plot']
