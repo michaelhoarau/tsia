@@ -8,7 +8,7 @@ from matplotlib.colors import to_hex
 # Useful constants definition
 COLORMAP = 'jet'
 
-def network_graph(mtf):
+def get_network_graph(mtf):
     """
     A Markov transition field can be interpreted as an adjacency matrix. This
     function computes the network graph associated to the MTF passed as an 

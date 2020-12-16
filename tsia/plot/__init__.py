@@ -1,5 +1,5 @@
 """
-The :mod:`tsia.plot` module includes useful methods to plot easy to interpret 
+The :mod:`tsia.plot` module includes useful methods to plot easier to interpret 
 time series.
 """
 
