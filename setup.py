@@ -13,10 +13,18 @@ CLASSIFIERS = [
     'Topic :: Scientific/Engineering',
     'Programming Language :: Python :: 3.7'
 ]
+
+INSTALL_REQUIRES = [
+    'networkx>=2.5',
+    'numpy>=1.17.5',
+    'numba>=0.48.0',
+    'python-louvain>=0.14.0',
+    'pyts>=0.11.0',
+]
     
 setup(
     name='tsia',
-    version='0.1.2',
+    version='0.1.3',
     maintainer='Michael Hoarau',
     maintainer_email='michael.hoarau@gmail.com',
     description='A Python package for time series analysis through images',
@@ -27,5 +35,6 @@ setup(
     long_description_content_type='text/markdown',
     packages=find_packages(),
     zip_safe=False,
-    classifiers=CLASSIFIERS
+    classifiers=CLASSIFIERS,
+    install_requires=INSTALL_REQUIRES
 )
