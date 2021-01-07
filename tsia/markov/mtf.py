@@ -1,12 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from numba import njit, prange
+from pyts.image import MarkovTransitionField
 from pyts.preprocessing.discretizer import KBinsDiscretizer
 
 # Useful constants definition
 MTF_N_BINS = 8
 MTF_STRATEGY = 'quantile'
 COLORMAP = 'jet'
+IMAGE_SIZE = 48
 
 def compute_mtf_statistics(mtf):
     """
@@ -26,15 +29,55 @@ def compute_mtf_statistics(mtf):
             self-transition probabilities of the Markov transition fields
             (contained in the main diagonal)
     """
-    avg_self_transition_prob = np.diag(mtf).mean()
-    std_self_transition_prob = np.diag(mtf).std()
-
+    if len(mtf.shape) == 2:
+        avg_self_transition_prob = np.diag(mtf).mean()
+        std_self_transition_prob = np.diag(mtf).std()
+        
+    elif len(mtf.shape) == 3:
+        avg_self_transition_prob = np.diagonal(mtf, axis1=1, axis2=2).mean(axis=1)
+        std_self_transition_prob = np.diagonal(mtf, axis1=1, axis2=2).std(axis=1)
+        
     statistics = {
         'Average self-transition prob': avg_self_transition_prob,
         'Std self-transition prob': std_self_transition_prob
     }
     
     return statistics
+    
+def get_multivariate_mtf(timeseries_list, 
+                         tags_list=None, 
+                         resample_rate=None, 
+                         image_size=IMAGE_SIZE):
+    """
+    TO DO
+    """
+    # Building a single tags dataframe: timestamps MUST be aligned:
+    tags_df = pd.concat(timeseries_list, axis='columns')
+    
+    # Resampling before taking MTF to reduce computational load:
+    if resample_rate is not None:
+        tags_df = tags_df.resample(resample_rate).mean()
+    
+    # Cleaning NaN as they are not allowed to build the MTF:
+    tags_df.replace(np.nan, 0.0, inplace=True)
+    num_timeseries = len(timeseries_list)
+    
+    # Adjust the column names to reflect the tags list:
+    if tags_list is not None:
+        tags_df.columns = tags_list
+
+    # Check for constant signals and remove them:
+    tags_stats = tags_df.describe().T
+    constant_signals = tags_stats[(tags_stats['max'] - tags_stats['min']) == 0].index
+    tags_df = tags_df[tags_df.columns.difference(constant_signals)]
+    selected_signals = tags_df.columns.tolist()
+        
+    # Get the MTF for all the signals:
+    mtf = MarkovTransitionField(image_size=image_size)
+    X = tags_df.values.T.reshape(tags_df.shape[1], -1)
+    tags_mtf = mtf.fit_transform(X)
+    
+    return tags_mtf, constant_signals.tolist(), selected_signals
     
 def discretize(timeseries, n_bins=MTF_N_BINS, strategy=MTF_STRATEGY):
     """

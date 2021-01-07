@@ -37,10 +37,33 @@ def get_network_graph(mtf):
         
     return graph
     
-def compute_network_graph_statistics(graph):
+def get_all_network_graphs(list_mtfs):
+    """
+    A Markov transition field can be interpreted as an adjacency matrix. This
+    function computes all the network graphs associated to the list of MTFs 
+    passed as an argument.
+
+    PARAMS
+    ======
+        list_mtfs: list of numpy.ndarray
+            List of numpy arrays, each containing a Markov transition field.
+
+    RETURNS
+    =======
+        list_graphs: list of networkx.graph
+            The network graphs built from the list of MTF passed as input.
+    """
+    list_graphs = []
+    
+    for mtf in list_mtfs:
+        list_graphs.append(get_network_graph(mtf))
+        
+    return list_graphs
+    
+def compute_network_graph_statistics(graph=None, mtf=None):
     """
     Extract the following statistics from the network graph passed as an
-    argument:
+    argument (or from the MTF directly):
         - diameter
         - average degree
         - average weighted degree
@@ -52,8 +75,12 @@ def compute_network_graph_statistics(graph):
         
     PARAMS
     ======
-        graph: networkx.classes.graph.Graph
-            The network graph to extract statistics from
+        graph: networkx.classes.graph.Graph (default to None)
+            The network graph to extract statistics from. Either graph or
+            mtf is mandatory.
+        mtf: numpy.ndarray (default to None)
+            Numpy array containing a Markov transition field. Either graph
+            or mtf is mandatory.
     
     RETURNS
     =======
@@ -62,6 +89,12 @@ def compute_network_graph_statistics(graph):
             network graph.
 
     """
+    if (graph is None) and (mtf is not None):
+        graph = get_network_graph(mtf)
+        
+    # TODO:
+    # Error if graph is None and mtf is None
+        
     partitions = community.best_partition(graph)
     nb_partitions = len(set(partitions.values()))
     modularity = community.modularity(partitions, graph)
@@ -87,6 +120,36 @@ def compute_network_graph_statistics(graph):
         'Partitions': nb_partitions
     }
     
+    return statistics
+    
+def compute_all_network_graph_statistics(list_mtfs):
+    """
+    Extract the following statistics from a list of MTF passed as an argument
+        - diameter
+        - average degree
+        - average weighted degree
+        - density
+        - average path length
+        - average clustering coefficient
+        - modularity
+        - number of partitions found in the graph
+
+    PARAMS
+    ======
+        list_mtfs: list of numpy.ndarray
+            List of numpy arrays, each containing a Markov transition field.
+
+    RETURNS
+    =======
+        statistics (dict)
+            Dictionnary containing the aforementionned statistics for each
+            MTF from the input list.
+    """
+    statistics = dict()
+    
+    for index, mtf in enumerate(list_mtfs):
+        statistics.update({index: compute_network_graph_statistics(mtf=mtf)})
+        
     return statistics
     
 def get_modularity_encoding(graph, colormap=COLORMAP, reversed_cmap=False):

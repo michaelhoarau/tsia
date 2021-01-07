@@ -3,6 +3,7 @@ import networkx as nx
 import numpy as np
 
 from matplotlib import gridspec
+from tqdm import tqdm
 
 # Useful constants definition
 COLORMAP = 'jet'
@@ -22,6 +23,38 @@ def get_style_colors():
     colors = prop_cycle.by_key()['color']
     
     return colors
+    
+def get_categories_colors(categories):
+    """
+    If you have a a description of all your tags with a category associated 
+    to each of them (submodule, unit of measure), you can use this function 
+    to associate a given color to each category.
+    
+    PARAMS
+    ======
+        categories: pandas.Series
+            A column with all the possible categories, this can be already 
+            deduplicated or not.
+            
+    RETURNS
+    =======
+        categories_colors: dict
+            A Python dictionary with a mapping between each category and
+            a color taken from the current matplotlib style.
+    """
+    # Get list of colors of the current style:
+    colors = get_style_colors()
+    
+    # Associate a given color to each unit of measure (uom):
+    categories_list = categories.unique().tolist()
+    categories_colors = dict()
+    for index, category in enumerate(categories_list):
+        categories_colors.update({category: colors[index % len(colors)]})
+        
+    # If no category is found, the color will be grey:
+    categories_colors.update({'None': '#CCCCCC'})
+    
+    return categories_colors
     
 def plot_markov_transition_field(mtf, 
                                  ax=None, 
@@ -53,6 +86,7 @@ def plot_markov_transition_field(mtf,
         mappable_image: matplotlib.image.AxesImage
             An AxesImage object that can be used to map a colorbar
     """
+    # Set the colormap depending on whether we want it reversed or no:
     if reversed_cmap == True:
         colormap = plt.cm.get_cmap(colormap).reversed()
     else:
@@ -63,11 +97,10 @@ def plot_markov_transition_field(mtf,
         fig = plt.figure(figsize=(4,4))
         ax = fig.add_subplot(111)
     
+    # The imshow function returns a variable necessary to add a colorbar:
     mappable_image = ax.imshow(mtf, cmap=colormap, origin='lower')
-    
     if title is not None:    
         ax.set_title(title, fontsize=10)
-    
     ax.axis("off")
     
     return ax, mappable_image
@@ -120,6 +153,7 @@ def plot_network_graph(graph,
             'node_color': '#999999'
         })
         
+    # Common parameters used for any encoding:
     options.update({
         'edgecolors': '#000000',    # Color of the node edges
         'linewidths': 1,            # Width of the node edges
@@ -129,6 +163,7 @@ def plot_network_graph(graph,
         'cmap': colormap
     })
 
+    # Set the colormap depending on whether we want it reversed or no:
     if reversed_cmap == True:
         colormap = plt.cm.get_cmap(colormap).reversed()
     else:
@@ -189,7 +224,7 @@ def plot_mtf_metrics(mtf):
 
     plt.show()
     
-def plot_timeseries_signal(timeseries, ax=None, label=''):
+def plot_timeseries_signal(timeseries, ax=None, label='', **kwargs):
     """
     Plot a given timeseries.
     
@@ -216,7 +251,8 @@ def plot_timeseries_signal(timeseries, ax=None, label=''):
     # Build the plot parameters:
     params = {
         'linewidth': 0.5,
-        'alpha': 0.8
+        'alpha': 0.8,
+        **kwargs
     }
     if label != '':
         params.update({'label': label})
@@ -225,6 +261,103 @@ def plot_timeseries_signal(timeseries, ax=None, label=''):
     ax.plot(timeseries, **params)
     
     return ax
+    
+def plot_multivariate_timeseries(timeseries_list, 
+                                 tags_list=None, 
+                                 num_cols=5, 
+                                 col_size=8, 
+                                 split_date=None, 
+                                 tags_description_df=None, 
+                                 tags_grouping_key=None):
+    """
+    Plots a list of time series
+    
+    PARAMS
+    ======
+        timeseries_list: list of pandas.DataFrame
+            List of dataframes to plot with a single timeseries in each of them
+        tags_list: list
+            A label for each tag to plot
+        
+        num_cols: integer
+            How many time series do we want to plot on each row. The number of
+            rows will be derived from the total number of signals to plot and
+            from this value.
+            
+        col_size: integer
+            Size of each plot
+        
+        split_date: pandas.datetime
+            A datetime index to split the signal
+        
+        tags_description_df: pandas.dataframe
+            A dataframe that can contain some characteristics of each time
+            series (e.g. unit of measure, subsystem...)
+        
+        tags_grouping_key: string
+            The column to use to group the timeseries and give them a 
+            corresponding consistent color
+    
+    RETURNS
+    =======
+        fig: matplotlib.figure
+            Returns the figure created here
+    """
+    num_timeseries = len(timeseries_list)
+    num_rows = num_timeseries // num_cols + 1
+    
+    fig = plt.figure(figsize=(col_size * num_cols, 2.5 * num_rows))
+    for index, ts_df in tqdm(enumerate(timeseries_list), total=num_timeseries):
+        # If we run out of tags before we finish
+        # this row we break out of the loop:
+        if index >= num_timeseries:
+            break
+            
+        # The current plot title can contain several pieces:
+        title = []
+        colors = get_style_colors()
+        main_color = colors[0]
+            
+        # Get the current tag and unit of measure:
+        if tags_list is not None:
+            tag = tags_list[index]
+            title.append(rf'Signal: $\bf{tag}$')
+            
+            if tags_description_df is not None:
+                grouping_key = tags_description_df.loc[tags_description_df['Tag'] == tag, tags_grouping_key].iloc[0]
+                if str(grouping_key) == 'nan':
+                    grouping_key = 'None'
+                
+                title.append(rf'Group: $\bf{grouping_key}$')
+                
+                group_colors = get_categories_colors(tags_description_df[tags_grouping_key])
+                main_color = group_colors[grouping_key]
+                
+        # Extract the train and evaluation dataframes from the current dataset:
+        if split_date is not None:
+            train_df = ts_df[:split_date]
+            eval_df = ts_df[split_date:]
+            
+        # Each plot includes a colorful lineplot for the training data, a 
+        # greyed one for the evaluation data and a title with the tag name in
+        # bold followed by the unit of measure. The color associated to each
+        # plot is selected depending on the unit of measure:
+        ax = plt.subplot(num_rows, num_cols, index + 1)
+        
+        if split_date is not None:
+            plot_timeseries_signal(train_df, ax, color=main_color)
+            plot_timeseries_signal(eval_df, ax, color='tab:grey', alpha=0.5)
+            
+        else:
+            plot_timeseries_signal(ts_df, ax, color=main_color)
+            
+        ax.axes.xaxis.set_visible(False)
+        if len(title) > 0:
+            ax.set_title(' - '.join(title), fontsize=9)
+            
+    plt.show()
+    
+    return fig
 
 def plot_timeseries_quantiles(timeseries, bin_edges, label=''):
     """
