@@ -6,10 +6,10 @@ from pyts.image import MarkovTransitionField
 from pyts.preprocessing.discretizer import KBinsDiscretizer
 
 # Useful constants definition
-MTF_N_BINS = 8
+MTF_N_BINS   = 8
 MTF_STRATEGY = 'quantile'
-COLORMAP = 'jet'
-IMAGE_SIZE = 48
+COLORMAP     = 'jet'
+IMAGE_SIZE   = 48
 
 def compute_mtf_statistics(mtf):
     """
@@ -49,7 +49,35 @@ def get_multivariate_mtf(timeseries_list,
                          resample_rate=None, 
                          image_size=IMAGE_SIZE):
     """
-    TO DO
+    This function computes the MTF for each of the timeseries passed as 
+    argument. It perform the appropriate data preprocessing to allow the
+    MTF to be computed (NaN removal, identifying constant signals...).
+    
+    PARAMS
+    ======
+        timeseries_list: list of pandas.dataframe
+            A list of dataframes (one per time series)
+        
+        tags_list: list of strings (default to None)
+            List of all the tag names if available.
+        
+        resample_rate: string (default to None)
+            A resampling rate to be used before applying the MTF computation.
+            
+        image_size: integer (default to 48)
+            Resolution of the MTF
+            
+    RETURNS
+    =======
+        tags_mtf: numpy.ndarray
+            An array of shape (num_timeseries, image_size, image_size) with
+            the MTF computed for each signal.
+        
+        constant_signals: list of string
+            A list of all the constant signals removed from the final result
+            
+        selected_signals: list of string
+            A list of all the signals selected for the final result
     """
     # Building a single tags dataframe: timestamps MUST be aligned:
     tags_df = pd.concat(timeseries_list, axis='columns')
