@@ -30,16 +30,22 @@ def compute_mtf_statistics(mtf):
             (contained in the main diagonal)
     """
     if len(mtf.shape) == 2:
+        avg_prob = mtf.mean()
+        std_prob = mtf.std()
         avg_self_transition_prob = np.diag(mtf).mean()
         std_self_transition_prob = np.diag(mtf).std()
         
     elif len(mtf.shape) == 3:
+        avg_prob = np.mean(mtf, axis=(1,2))
+        std_prob = np.std(mtf, axis=(1,2))
         avg_self_transition_prob = np.diagonal(mtf, axis1=1, axis2=2).mean(axis=1)
         std_self_transition_prob = np.diagonal(mtf, axis1=1, axis2=2).std(axis=1)
         
     statistics = {
         'Average self-transition prob': avg_self_transition_prob,
-        'Std self-transition prob': std_self_transition_prob
+        'Std self-transition prob': std_self_transition_prob,
+        'Average prob': avg_prob,
+        'Std prob': std_prob
     }
     
     return statistics
