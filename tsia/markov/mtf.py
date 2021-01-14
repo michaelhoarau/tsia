@@ -34,16 +34,22 @@ def compute_mtf_statistics(mtf):
         std_prob = mtf.std()
         avg_self_transition_prob = np.diag(mtf).mean()
         std_self_transition_prob = np.diag(mtf).std()
+        avg_next_transition_prob = np.diag(mtf, k=1).mean()
+        std_next_transition_prob = np.diag(mtf, k=1).std()
         
     elif len(mtf.shape) == 3:
         avg_prob = np.mean(mtf, axis=(1,2))
         std_prob = np.std(mtf, axis=(1,2))
         avg_self_transition_prob = np.diagonal(mtf, axis1=1, axis2=2).mean(axis=1)
         std_self_transition_prob = np.diagonal(mtf, axis1=1, axis2=2).std(axis=1)
+        avg_next_transition_prob = np.diagonal(mtf, offset=1, axis1=1, axis2=2).mean(axis=1)
+        std_next_transition_prob = np.diagonal(mtf, offset=1, axis1=1, axis2=2).std(axis=1)
         
     statistics = {
         'Average self-transition prob': avg_self_transition_prob,
         'Std self-transition prob': std_self_transition_prob,
+        'Average next transition prob': avg_next_transition_prob,
+        'Std next transition prob': std_next_transition_prob,
         'Average prob': avg_prob,
         'Std prob': std_prob
     }
@@ -252,12 +258,25 @@ def get_mtf_map(timeseries,
     
     mtf_map = []
     sequences_width = timeseries.shape[0] / image_size
-    for i in range(image_size):
+    for i in range(image_size - step_size):
         c = colormap(mtf_colors[i])
         start = int(i * sequences_width)
         end = int((i+1) * sequences_width - 1)
         data = timeseries.iloc[start:end, :]
         
+        current_map = dict()
+        current_map.update({
+            'color': c,
+            'slice': data
+        })
+        mtf_map.append(current_map)
+        
+    for i in range(image_size - step_size, image_size):
+        c = '#DDDDDD'
+        start = int(i * sequences_width)
+        end = int((i+1) * sequences_width - 1)
+        data = timeseries.iloc[start:end, :]
+
         current_map = dict()
         current_map.update({
             'color': c,
