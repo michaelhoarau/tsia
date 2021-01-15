@@ -24,7 +24,7 @@ INSTALL_REQUIRES = [
     
 setup(
     name='tsia',
-    version='0.1.7',
+    version='0.1.9',
     maintainer='Michael Hoarau',
     maintainer_email='michael.hoarau@gmail.com',
     description='A Python package for time series analysis through images',

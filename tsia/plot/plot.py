@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import gridspec
 from tqdm import tqdm
 
-from ..utils import utils
+from ..utils import hex_to_rgb, load_timeseries_from_dir
 
 # Useful constants definition
 COLORMAP = 'jet'
@@ -442,9 +442,9 @@ def plot_colored_timeseries(timeseries, colormap, ax=None):
 def plot_matrix_timeseries(binned_timeseries, signal_list, fig_width=12, signal_height=0.15, dates=None, day_interval=7):
     # Build a suitable colormap:
     colors_list = [
-        utils.hex_to_rgb('#DC322F'), 
-        utils.hex_to_rgb('#B58900'), 
-        utils.hex_to_rgb('#2AA198')
+        hex_to_rgb('#DC322F'), 
+        hex_to_rgb('#B58900'), 
+        hex_to_rgb('#2AA198')
     ]
     cm = colors.LinearSegmentedColormap.from_list('RdAmGr', colors_list, N=len(colors_list))
     
