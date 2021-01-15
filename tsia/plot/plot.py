@@ -1,9 +1,14 @@
+import matplotlib.colors as colors
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import networkx as nx
 import numpy as np
 
 from matplotlib import gridspec
 from tqdm import tqdm
+
+from ..utils import utils
 
 # Useful constants definition
 COLORMAP = 'jet'
@@ -433,3 +438,54 @@ def plot_colored_timeseries(timeseries, colormap, ax=None):
                 color=timeseries_slice['color'])
         
     return ax
+    
+def plot_matrix_timeseries(binned_timeseries, signal_list, fig_width=12, signal_height=0.15, dates=None, day_interval=7):
+    # Build a suitable colormap:
+    colors_list = [
+        utils.hex_to_rgb('#DC322F'), 
+        utils.hex_to_rgb('#B58900'), 
+        utils.hex_to_rgb('#2AA198')
+    ]
+    cm = colors.LinearSegmentedColormap.from_list('RdAmGr', colors_list, N=len(colors_list))
+    
+    fig = plt.figure(figsize=(fig_width, signal_height * binned_timeseries.shape[0])) # 87
+    ax = fig.add_subplot(1,1,1)
+    
+    # Devising the extent of the actual plot:
+    if dates is not None:
+        dnum = mdates.date2num(dates)
+        start = dnum[0] - (dnum[1]-dnum[0])/2.
+        stop = dnum[-1] + (dnum[1]-dnum[0])/2.
+        extent = [start, stop, 0, signal_height * (binned_timeseries.shape[0])]
+        
+    else:
+        extent = None
+        
+    # Plot the matrix:
+    im = ax.imshow(binned_timeseries, extent=extent, aspect="auto", cmap=cm)
+    
+    # Adjusting the x-axis if we provide dates:
+    if dates is not None:
+        ax.xaxis.set_major_locator(mdates.MonthLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+        for tick in ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(8)
+            tick.label.set_rotation(60)
+            tick.label.set_fontweight('bold')
+
+        ax.xaxis.set_minor_locator(mdates.DayLocator(interval=day_interval))
+        ax.xaxis.set_minor_formatter(mdates.DateFormatter('%d'))
+        for tick in ax.xaxis.get_minor_ticks():
+            tick.label.set_fontsize(7)
+            tick.label.set_rotation(90)
+        
+        ax.tick_params(axis='x', which='major', pad=15, labelcolor='#000000')
+        plt.xticks(ha='right')
+        
+    # Adjusting the y-axis:
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(signal_height))
+    ax.set_yticklabels(signal_list, verticalalignment='bottom', fontsize=7)
+    ax.set_yticks(np.arange(len(signal_list)) * signal_height)
+
+    plt.grid()
+    plt.show()

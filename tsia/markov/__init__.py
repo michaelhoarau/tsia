@@ -8,6 +8,7 @@ from .mtf import *
 __all__ = [
     'compute_mtf_statistics', 
     'discretize',
+    'discretize_multivariate',
     'markov_transition_matrix',
     'markov_transition_probabilities',
     'get_mtf_map',

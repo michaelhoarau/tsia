@@ -7,6 +7,7 @@ and visualization capabilities.
 from .plot import plot
 from .markov import mtf as markov
 from .network_graph import ng as network_graph
+from .utils import utils
 
-__version__ = '0.1.6'
-__all__ = ['markov', 'network_graph', 'plot']
+__version__ = '0.1.7'
+__all__ = ['markov', 'network_graph', 'plot', 'utils']

@@ -156,6 +156,47 @@ def discretize(timeseries, n_bins=MTF_N_BINS, strategy=MTF_STRATEGY):
                            timeseries.values.max()))
     
     return X_binned, bin_edges
+    
+def discretize_multivariate(timeseries, n_bins=3, strategy=MTF_STRATEGY):
+    """
+    Discretize a given number of time series into a certain number of bins.
+    
+    PARAMS
+    ======
+        timeseries: array of numpy.ndarray
+            The time series data to discretize
+        n_bins: int (default = 8)
+            Number of bins to discretize the data into. Also known as the size
+            of the alphabet.
+        strategy: 'uniform', 'quantile' or 'normal' (default = 'quantile')
+            Strategy used to define the widths of the bins:
+            - 'uniform': All bins in each sample have identical widths
+            - 'quantile': All bins in each sample have the same number of points
+            - 'normal': Bin edges are quantiles from a standard normal 
+                        distribution
+            
+    RETURNS
+    =======
+        binned_timeseries: array of numpy.ndarray
+            The binned signals
+    """
+    max_length = 0
+    list_arrays = []
+    
+    for tag_df in timeseries:
+        X_binned, _ = discretize(tag_df, n_bins=n_bins)
+        if X_binned.shape[0] > max_length:
+            max_length = X_binned.shape[0]
+        list_arrays.append(np.expand_dims(X_binned, 1).T)
+        
+    for index, a in enumerate(list_arrays):
+        if a.shape[1] < max_length:
+            N = max_length - a.shape[1]
+            list_arrays[index] = np.expand_dims(np.pad(a.squeeze(), (0, N), 'constant'), 1).T
+            
+    binned_timeseries = np.concatenate(list_arrays)
+    
+    return binned_timeseries
 
 @njit()
 def markov_transition_matrix(X_binned):
