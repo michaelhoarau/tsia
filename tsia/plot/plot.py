@@ -439,7 +439,7 @@ def plot_colored_timeseries(timeseries, colormap, ax=None):
         
     return ax
     
-def plot_matrix_timeseries(binned_timeseries, signal_list, fig_width=12, signal_height=0.15, dates=None, day_interval=7):
+def plot_timeseries_trip_chart(binned_timeseries, signal_list, fig_width=12, signal_height=0.15, dates=None, day_interval=7):
     # Build a suitable colormap:
     colors_list = [
         hex_to_rgb('#DC322F'), 

@@ -14,5 +14,6 @@ __all__ = [
     'plot_multivariate_timeseries',
     'plot_timeseries_quantiles',
     'plot_colored_timeseries',
-    'plot_network_graph'
+    'plot_network_graph',
+    'plot_timeseries_trip_chart'
 ]
