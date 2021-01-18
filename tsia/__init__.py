@@ -8,6 +8,10 @@ from .plot import plot
 from .markov import mtf as markov
 from .network_graph import ng as network_graph
 from .utils import tools as utils
+from .diagnostics import histograms
+from .diagnostics import profiling
 
-__version__ = '0.1.8'
-__all__ = ['markov', 'network_graph', 'plot', 'utils']
+__version__ = '0.1.12'
+__all__ = [
+    'markov', 'network_graph', 'plot', 'utils', 'histograms', 'profiling'
+]

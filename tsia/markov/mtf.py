@@ -20,7 +20,7 @@ def compute_mtf_statistics(mtf):
     PARAMS
     ======
         mtf: numpy.ndarray
-            Numpy array containing a Markov transition field.
+            Numpy array containing one or several Markov transition fields
             
     RETURNS
     =======
@@ -183,19 +183,29 @@ def discretize_multivariate(timeseries, n_bins=3, strategy=MTF_STRATEGY):
     max_length = 0
     list_arrays = []
     
+    # Each dataframe contains a time series:
     for tag_df in timeseries:
+        # Get the bin mapping from the current signal:
         X_binned, _ = discretize(tag_df, n_bins=n_bins)
+        
+        # We want to get the maximum length of the signals
         if X_binned.shape[0] > max_length:
             max_length = X_binned.shape[0]
+            
+        # Store each array in a list:
         list_arrays.append(np.expand_dims(X_binned, 1).T)
         
+    # Loops through each array to harmonize their length:
     for index, a in enumerate(list_arrays):
         if a.shape[1] < max_length:
             N = max_length - a.shape[1]
-            list_arrays[index] = np.expand_dims(np.pad(a.squeeze(), (0, N), 'constant'), 1).T
+            list_arrays[index] = np.expand_dims(
+                np.pad(a.squeeze(), (0, N), 'constant'), 1
+            ).T
             
+    # Concatenate all the discretized time series 
+    # into a single array and returns it:
     binned_timeseries = np.concatenate(list_arrays)
-    
     return binned_timeseries
 
 @njit()
