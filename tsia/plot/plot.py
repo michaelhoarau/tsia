@@ -364,7 +364,13 @@ def plot_multivariate_timeseries(timeseries_list,
     
     return fig
 
-def plot_timeseries_quantiles(timeseries, bin_edges, label=''):
+def plot_timeseries_quantiles(timeseries, 
+                              bin_edges, 
+                              label='', 
+                              quantile_alpha=0.1,
+                              colors=None,
+                              ax=None,
+                              **kwargs):
     """
     This methods superimpose the quantiles stored in the bin edges with the 
     actual time series signal. This visualization helps understanding the 
@@ -387,17 +393,20 @@ def plot_timeseries_quantiles(timeseries, bin_edges, label=''):
         ax: matplotlib.axes
             Returns the ax created to plot this timeseries and quantiles
     """
-    colors = get_style_colors()
+    if colors is None:
+        colors = get_style_colors()
 
-    fig = plt.figure(figsize=(28,8))
-    ax = fig.add_subplot(111)
-    plot_timeseries_signal(timeseries, ax=ax, label=label)
+    if ax is None:
+        fig = plt.figure(figsize=(28, 8))
+        ax = fig.add_subplot(111)
+        
+    plot_timeseries_signal(timeseries, ax=ax, label=label, **kwargs)
 
     for index in range(len(bin_edges) - 1):
         ax.fill_between(timeseries.index, 
                         y1=bin_edges[index], 
                         y2=bin_edges[index+1], 
-                        alpha=0.1, 
+                        alpha=quantile_alpha,
                         color=colors[(index + 1) % len(colors)])
         
     return ax
@@ -439,7 +448,7 @@ def plot_colored_timeseries(timeseries, colormap, ax=None):
         
     return ax
     
-def plot_timeseries_trip_chart(binned_timeseries, signal_list, fig_width=12, signal_height=0.15, dates=None, day_interval=7):
+def plot_timeseries_strip_chart(binned_timeseries, signal_list, fig_width=12, signal_height=0.15, dates=None, day_interval=7):
     # Build a suitable colormap:
     colors_list = [
         hex_to_rgb('#DC322F'), 
