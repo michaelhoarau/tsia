@@ -471,7 +471,11 @@ def plot_timeseries_strip_chart(binned_timeseries, signal_list, fig_width=12, si
         extent = None
         
     # Plot the matrix:
-    im = ax.imshow(binned_timeseries, extent=extent, aspect="auto", cmap=cm)
+    im = ax.imshow(binned_timeseries, 
+                   extent=extent, 
+                   aspect="auto", 
+                   cmap=cm, 
+                   origin='upper')
     
     # Adjusting the x-axis if we provide dates:
     if dates is not None:

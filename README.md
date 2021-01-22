@@ -37,3 +37,5 @@ several encoding techniques to interpret network graphs built upon MTF.
 provide insights into univariate timeseries. This module implement MTF, network
 graph visualization and several line graphs (vanilla time series, colored 
 time series with different color encodings, quantile discretization overlay...).
+
+* `utils`: this modules includes some utilities leveraged by the other ones.
