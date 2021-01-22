@@ -11,7 +11,7 @@ from .utils import tools as utils
 from .diagnostics import histograms
 from .diagnostics import profiling
 
-__version__ = '0.1.12'
+__version__ = '0.1.13'
 __all__ = [
     'markov', 'network_graph', 'plot', 'utils', 'histograms', 'profiling'
 ]
