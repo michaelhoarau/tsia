@@ -281,27 +281,28 @@ def plot_multivariate_timeseries(timeseries_list,
     ======
         timeseries_list: list of pandas.DataFrame
             List of dataframes to plot with a single timeseries in each of them
+
         tags_list: list
-            A label for each tag to plot
+            A label for each tag to plot (defaults to None)
         
         num_cols: integer
             How many time series do we want to plot on each row. The number of
             rows will be derived from the total number of signals to plot and
-            from this value.
+            from this value (defaults to 5).
             
         col_size: integer
-            Size of each plot
+            Size of each plot (defaults to 8)
         
         split_date: pandas.datetime
-            A datetime index to split the signal
+            A datetime index to split the signal (defaults to None)
         
         tags_description_df: pandas.dataframe
             A dataframe that can contain some characteristics of each time
-            series (e.g. unit of measure, subsystem...)
+            series (e.g. unit of measure, subsystem...) (defaults to None)
         
         tags_grouping_key: string
             The column to use to group the timeseries and give them a 
-            corresponding consistent color
+            corresponding consistent color (defaults to None)
     
     RETURNS
     =======
@@ -481,18 +482,22 @@ def plot_timeseries_strip_chart(binned_timeseries, signal_list, fig_width=12, si
     if dates is not None:
         ax.xaxis.set_major_locator(mdates.MonthLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-        for tick in ax.xaxis.get_major_ticks():
-            tick.label.set_fontsize(8)
-            tick.label.set_rotation(60)
-            tick.label.set_fontweight('bold')
+
+        ax.tick_params(axis="x", which="major", labelsize=8, labelrotation=60, pad=15, labelcolor='#000000')
+        ax.tick_params(axis="x", which="minor", labelsize=7, labelrotation=90)
+
+        # for tick in ax.xaxis.get_major_ticks():
+        #     tick.label.set_fontsize(8)
+        #     tick.label.set_rotation(60)
+        #     tick.label.set_fontweight('bold')
 
         ax.xaxis.set_minor_locator(mdates.DayLocator(interval=day_interval))
         ax.xaxis.set_minor_formatter(mdates.DateFormatter('%d'))
-        for tick in ax.xaxis.get_minor_ticks():
-            tick.label.set_fontsize(7)
-            tick.label.set_rotation(90)
+        # for tick in ax.xaxis.get_minor_ticks():
+        #     tick.label.set_fontsize(7)
+        #     tick.label.set_rotation(90)
         
-        ax.tick_params(axis='x', which='major', pad=15, labelcolor='#000000')
+        # ax.tick_params(axis='x', which='major', pad=15, labelcolor='#000000')
         plt.xticks(ha='right')
         
     # Adjusting the y-axis:
