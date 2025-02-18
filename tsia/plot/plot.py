@@ -218,7 +218,7 @@ def plot_mtf_metrics(mtf):
         stds.append(diag.std())
 
         diag = np.hstack((np.zeros(shape=(diag_index,)), diag))
-        ax.plot(diag, linewidth=1.5 - diag_index/10, alpha=1 - diag_index/10)
+        ax.plot(diag, linewidth=1.5 - diag_index/image_size, alpha=1 - diag_index/image_size)
     ax.set_title('Transition probabilities across the MTF diagonals')
 
     ax = fig.add_subplot(gs[2])
